@@ -1,5 +1,6 @@
 [
-  { "when": "2 minutes ago",
+  {
+    "when": "2 minutes ago",
     "who": "Jill Dupre",
     "description": "Created new account"
   },

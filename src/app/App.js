@@ -1,77 +1,44 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from "react";
+import Headings from "./components/Headings";
+import Rows from "./components/Rows";
+import PropTypes from "prop-types";
+import { format } from "timeago.js";
 
-import Heading from './Heading';
-import Row from './Row';
+const App = ({ title, headings }) => {
+  const [books, setBooks] = useState([]);
 
-import timeago from 'timeago.js';
-const timeagoInstance = timeago();
+  const formatData = (books) =>
+    books.map((book, i) => ({
+      when: format(book.timestamp),
+      who: book.author.key,
+      description: book.comment,
+    }));
 
-class Headings extends Component {
-  render() {
-    return <thead className="table-success">
-      <tr>
-        {
-          this.props.headings.map((heading, i) => {
-            return <Heading heading={heading} key={i}/>
-          })}
-        </tr>
-      </thead>
-  }
-}
-
-class Rows extends Component {
-  render() {
-    return <tbody>
-      {
-        this.props.data.map((row, i)=> {
-          return (
-            <Row change={row} key={i}/>
-          )
-        })
-      }
-    </tbody>
-  }
-}
-
-class App extends Component {
-
-  constructor() {
-    super();
-    this.state = {
-      data: []
-    };
-  }
-
-  componentDidMount() {
+  useEffect(() => {
     setInterval(async () => {
-      const res = await fetch('http://openlibrary.org/recentchanges.json?limit=10')
+      const res = await fetch(
+        "http://openlibrary.org/recentchanges.json?limit=10"
+      );
       const data = await res.json();
-      const formatData = this.formatData(data);
-      this.setState({data: formatData});
-    }, 1000);
-  }
+      const formatedData = formatData(data);
+      setBooks(formatedData);
+    }, 3000);
+  }, []);
 
-  formatData(data) {
-    return data.map((data, i) => {
-      return {
-        "when": timeagoInstance.format(data.timestamp),
-        "who": data.author.key,
-        "description": data.comment
-      }
-    });
-  }
+  return (
+    <div className="container p-4">
+      <h1 className="display-2 mb-3">{title}</h1>
+      <table className="table table-bordered table-hover table-striped">
+        <Headings headings={headings} />
+        <Rows data={books} />
+      </table>
+    </div>
+  );
+};
 
-  render() {
-    return (
-      <div className="container p-4">
-        <h1>{this.props.title}</h1>
-        <table className="table table-bordered">
-          <Headings headings={this.props.headings}/>
-          <Rows data={this.state.data}/>
-        </table>
-      </div>
-    );
-  }
-}
+App.propTypes = {
+  title: PropTypes.string.isRequired,
+  headings: PropTypes.array.isRequired,
+};
 
 export default App;
